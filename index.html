@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>La Arenga - Sistema de Reservas</title>
+<title>La Arenga - Reservas Pro</title>
 
 <style>
 :root{
@@ -12,356 +12,138 @@
 --free:#1f8f5f;
 --booked:#d64541;
 --accent:#ff7a00;
---panel:#0b2a20;
 }
 
-body{
-margin:0;
-font-family:system-ui,Arial;
-background:var(--bg);
-color:white;
-}
+body{margin:0;font-family:system-ui;background:var(--bg);color:white}
+header{padding:15px;text-align:center;font-size:20px;background:#0b2a20}
+.container{padding:12px;max-width:900px;margin:auto}
 
-header{
-padding:18px;
-text-align:center;
-font-size:22px;
-font-weight:700;
-background:#0b2a20;
-}
+.login{display:flex;flex-direction:column;gap:10px;margin-top:40px}
+button{padding:12px;border:none;border-radius:10px;font-size:16px}
+.admin{background:var(--accent)}
+.client{background:#333;color:white}
 
-.container{
-padding:12px;
-max-width:900px;
-margin:auto;
-}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:15px 0}
+.day{background:var(--card);padding:10px;border-radius:10px;text-align:center;cursor:pointer}
+.day.active{background:var(--accent)}
 
-.stats{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-bottom:14px;
-}
-
-.card{
-background:var(--panel);
-padding:12px;
-border-radius:12px;
-text-align:center;
-}
-
-.week{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:6px;
-margin-bottom:16px;
-}
-
-.day{
-background:var(--card);
-padding:10px;
-border-radius:10px;
-text-align:center;
-cursor:pointer;
-font-size:13px;
-}
-
-.day.active{
-background:var(--accent);
-}
-
-.slot{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:16px;
-border-radius:12px;
-margin-bottom:10px;
-font-size:18px;
-cursor:pointer;
-}
-
+.slot{display:flex;justify-content:space-between;padding:14px;border-radius:10px;margin-bottom:8px}
 .free{background:var(--free)}
 .booked{background:var(--booked)}
 
-.name{
-font-size:14px;
-opacity:.9;
-}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
+.modal-content{background:#111;padding:20px;border-radius:10px;width:90%}
 
-.modal{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.7);
-display:none;
-justify-content:center;
-align-items:center;
-padding:12px;
-}
-
-.modal-content{
-background:#111;
-padding:20px;
-border-radius:14px;
-width:100%;
-max-width:420px;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:8px;
-margin-bottom:12px;
-border-radius:8px;
-border:none;
-font-size:15px;
-}
-
-button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:10px;
-margin-top:6px;
-font-size:15px;
-}
-
-.primary{background:var(--accent);color:white}
-.secondary{background:#333;color:white}
-.danger{background:#555;color:white}
-
-.footer{
-text-align:center;
-font-size:12px;
-margin-top:20px;
-opacity:.6;
-}
+input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none}
 </style>
 </head>
 
 <body>
+<header>⚽ La Arenga</header>
 
-<header>⚽ Complejo Deportivo La Arenga</header>
-
-<div class="container">
-
-<div class="stats">
-<div class="card">
-<div>Reservas hoy</div>
-<strong id="todayCount">0</strong>
-</div>
-<div class="card">
-<div>Ingresos hoy</div>
-<strong id="todayMoney">$0</strong>
+<div class="container" id="login">
+<h2>Seleccionar modo</h2>
+<div class="login">
+<button class="admin" onclick="enter('admin')">Administrador</button>
+<button class="client" onclick="enter('client')">Cliente</button>
 </div>
 </div>
 
+<div class="container" id="app" style="display:none">
 <div id="week" class="week"></div>
-
 <div id="slots"></div>
-
-<div class="footer">Sistema profesional de reservas</div>
-
 </div>
 
 <div class="modal" id="modal">
 <div class="modal-content">
-
-<h3 id="modalTitle"></h3>
-
-<input id="name" placeholder="Nombre del cliente" />
+<h3 id="title"></h3>
+<input id="name" placeholder="Nombre" />
 <input id="phone" placeholder="Teléfono" />
-<input id="price" placeholder="Precio arriendo" type="number" />
-
-<button class="primary" onclick="saveReservation()">Guardar Reserva</button>
-<button class="secondary" onclick="sendWhatsApp()">Confirmar por WhatsApp</button>
-<button class="danger" onclick="deleteReservation()">Eliminar</button>
-<button onclick="closeModal()">Cancelar</button>
-
+<button onclick="save()">Guardar</button>
+<button onclick="closeM()">Cerrar</button>
 </div>
 </div>
 
 <script>
 
 const hours=["15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"]
-
+let mode="client"
 let selectedDate=null
 let selectedHour=null
 
-const weekDiv=document.getElementById("week")
-const slotsDiv=document.getElementById("slots")
-
-function getKey(){
-return "arenga_"+selectedDate
+function enter(m){
+mode=m
+login.style.display="none"
+app.style.display="block"
+generateWeek()
+load()
 }
 
+function key(){return "arenga_"+selectedDate}
+
 function generateWeek(){
-
-weekDiv.innerHTML=""
-
+week.innerHTML=""
 const today=new Date()
 
 for(let i=0;i<7;i++){
-
 const d=new Date()
 d.setDate(today.getDate()+i)
-
 const iso=d.toISOString().split("T")[0]
 
 const div=document.createElement("div")
-
-const name=d.toLocaleDateString("es-CL",{weekday:"short"})
-const day=d.getDate()
-
-
 div.className="day"
 
-div.innerHTML=`${name}<br>${day}`
+div.innerHTML=d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric"})
 
-if(i===0){
-selectedDate=iso
-div.classList.add("active")
-}
+if(i===0){selectedDate=iso;div.classList.add("active")}
 
 
 div.onclick=()=>{
-
 selectedDate=iso
-
-Array.from(document.querySelectorAll(".day")).forEach(el=>el.classList.remove("active"))
-
-
+Array.from(document.querySelectorAll(".day")).forEach(e=>e.classList.remove("active"))
 div.classList.add("active")
-
-loadSlots()
-updateStats()
-
+load()
 }
 
-weekDiv.appendChild(div)
-
+week.appendChild(div)
+}
 }
 
-}
-
-function loadSlots(){
-
-slotsDiv.innerHTML=""
-
-const data=JSON.parse(localStorage.getItem(getKey())||"{}")
+function load(){
+slots.innerHTML=""
+const data=JSON.parse(localStorage.getItem(key())||"{}")
 
 hours.forEach(h=>{
-
 const res=data[h]
-
 const div=document.createElement("div")
-
-
 div.className="slot "+(res?"booked":"free")
 
+div.innerHTML=`<span>${h}</span><span>${res?res.name:"Disponible"}</span>`
 
-div.innerHTML=`
-<div>
-<strong>${h}</strong>
-<div class="name">${res?res.name:"Disponible"}</div>
-</div>
-<div>➜</div>
-`
-
-
-div.onclick=()=>openModal(h,res)
-
-slotsDiv.appendChild(div)
-
-})
-
+if(mode==='admin' || !res){
+div.onclick=()=>open(h,res)
 }
 
-function openModal(hour,res){
-selectedHour=hour
+slots.appendChild(div)
+})
+}
+
+function open(h,r){
+selectedHour=h
 modal.style.display="flex"
-modalTitle.innerText="Reserva " + hour
-name.value=res?.name||""
-phone.value=res?.phone||""
-price.value=res?.price||""
+title.innerText="Hora "+h
+name.value=r?.name||""
+phone.value=r?.phone||""
 }
 
-function closeModal(){
-modal.style.display="none"
+function closeM(){modal.style.display="none"}
+
+function save(){
+const data=JSON.parse(localStorage.getItem(key())||"{}")
+data[selectedHour]={name:name.value,phone:phone.value}
+localStorage.setItem(key(),JSON.stringify(data))
+closeM();load()
 }
-
-function saveReservation(){
-
-if(!name.value){
-alert("Ingrese nombre")
-return
-}
-
-const data=JSON.parse(localStorage.getItem(getKey())||"{}")
-
-
-data[selectedHour]={
-name:name.value,
-phone:phone.value,
-price:price.value
-}
-
-localStorage.setItem(getKey(),JSON.stringify(data))
-
-closeModal()
-loadSlots()
-updateStats()
-
-}
-
-function deleteReservation(){
-
-const data=JSON.parse(localStorage.getItem(getKey())||"{}")
-
-if(data[selectedHour]) delete data[selectedHour]
-
-localStorage.setItem(getKey(),JSON.stringify(data))
-
-closeModal()
-loadSlots()
-updateStats()
-
-}
-
-function updateStats(){
-
-const data=JSON.parse(localStorage.getItem(getKey())||"{}")
-
-let count=0
-let money=0
-
-Object.values(data).forEach(r=>{
-count++
-money+=Number(r.price||0)
-})
-
-todayCount.innerText=count
-
-todayMoney.innerText="$"+money
-
-}
-
-function sendWhatsApp(){
-
-if(!phone.value) return
-
-const msg=`Hola ${name.value}, tu reserva en La Arenga a las ${selectedHour} está confirmada.`
-
-const url=`https://wa.me/${phone.value}?text=${encodeURIComponent(msg)}`
-
-window.open(url)
-
-}
-
-
-generateWeek()
-loadSlots()
-updateStats()
 
 </script>
 
