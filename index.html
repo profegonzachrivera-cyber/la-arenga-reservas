@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>La Arenga - Reservas</title>
+<title>La Arenga - Sistema de Reservas</title>
 
 <style>
 :root{
 --bg:#0f3d2e;
 --card:#173f33;
---free:#1f7a5c;
---booked:#c0392b;
+--free:#1f8f5f;
+--booked:#d64541;
 --accent:#ff7a00;
+--panel:#0b2a20;
 }
 
 body{
@@ -22,16 +23,31 @@ color:white;
 }
 
 header{
-padding:16px;
+padding:18px;
 text-align:center;
 font-size:22px;
 font-weight:700;
+background:#0b2a20;
 }
 
 .container{
 padding:12px;
-max-width:700px;
+max-width:900px;
 margin:auto;
+}
+
+.stats{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:14px;
+}
+
+.card{
+background:var(--panel);
+padding:12px;
+border-radius:12px;
+text-align:center;
 }
 
 .week{
@@ -43,7 +59,7 @@ margin-bottom:16px;
 
 .day{
 background:var(--card);
-padding:8px;
+padding:10px;
 border-radius:10px;
 text-align:center;
 cursor:pointer;
@@ -52,10 +68,6 @@ font-size:13px;
 
 .day.active{
 background:var(--accent);
-}
-
-.slots{
-margin-top:10px;
 }
 
 .slot{
@@ -116,7 +128,7 @@ font-size:15px;
 
 .primary{background:var(--accent);color:white}
 .secondary{background:#333;color:white}
-.danger{background:#222;color:white}
+.danger{background:#555;color:white}
 
 .footer{
 text-align:center;
@@ -129,15 +141,26 @@ opacity:.6;
 
 <body>
 
-<header>⚽ La Arenga - Reservas</header>
+<header>⚽ Complejo Deportivo La Arenga</header>
 
 <div class="container">
 
+<div class="stats">
+<div class="card">
+<div>Reservas hoy</div>
+<strong id="todayCount">0</strong>
+</div>
+<div class="card">
+<div>Ingresos hoy</div>
+<strong id="todayMoney">$0</strong>
+</div>
+</div>
+
 <div id="week" class="week"></div>
 
-<div id="slots" class="slots"></div>
+<div id="slots"></div>
 
-<div class="footer">Gestor semanal de reservas</div>
+<div class="footer">Sistema profesional de reservas</div>
 
 </div>
 
@@ -148,10 +171,12 @@ opacity:.6;
 
 <input id="name" placeholder="Nombre del cliente" />
 <input id="phone" placeholder="Teléfono" />
+<input id="price" placeholder="Precio arriendo" type="number" />
 
 <button class="primary" onclick="saveReservation()">Guardar Reserva</button>
+<button class="secondary" onclick="sendWhatsApp()">Confirmar por WhatsApp</button>
 <button class="danger" onclick="deleteReservation()">Eliminar</button>
-<button class="secondary" onclick="closeModal()">Cancelar</button>
+<button onclick="closeModal()">Cancelar</button>
 
 </div>
 </div>
@@ -171,6 +196,7 @@ return "arenga_"+selectedDate
 }
 
 function generateWeek(){
+
 weekDiv.innerHTML=""
 
 const today=new Date()
@@ -184,11 +210,11 @@ const iso=d.toISOString().split("T")[0]
 
 const div=document.createElement("div")
 
-div.className="day"
-
 const name=d.toLocaleDateString("es-CL",{weekday:"short"})
 const day=d.getDate()
 
+
+div.className="day"
 
 div.innerHTML=`${name}<br>${day}`
 
@@ -208,6 +234,7 @@ Array.from(document.querySelectorAll(".day")).forEach(el=>el.classList.remove("a
 div.classList.add("active")
 
 loadSlots()
+updateStats()
 
 }
 
@@ -256,6 +283,7 @@ modal.style.display="flex"
 modalTitle.innerText="Reserva " + hour
 name.value=res?.name||""
 phone.value=res?.phone||""
+price.value=res?.price||""
 }
 
 function closeModal(){
@@ -274,13 +302,15 @@ const data=JSON.parse(localStorage.getItem(getKey())||"{}")
 
 data[selectedHour]={
 name:name.value,
-phone:phone.value
+phone:phone.value,
+price:price.value
 }
 
 localStorage.setItem(getKey(),JSON.stringify(data))
 
 closeModal()
 loadSlots()
+updateStats()
 
 }
 
@@ -294,12 +324,44 @@ localStorage.setItem(getKey(),JSON.stringify(data))
 
 closeModal()
 loadSlots()
+updateStats()
+
+}
+
+function updateStats(){
+
+const data=JSON.parse(localStorage.getItem(getKey())||"{}")
+
+let count=0
+let money=0
+
+Object.values(data).forEach(r=>{
+count++
+money+=Number(r.price||0)
+})
+
+todayCount.innerText=count
+
+todayMoney.innerText="$"+money
+
+}
+
+function sendWhatsApp(){
+
+if(!phone.value) return
+
+const msg=`Hola ${name.value}, tu reserva en La Arenga a las ${selectedHour} está confirmada.`
+
+const url=`https://wa.me/${phone.value}?text=${encodeURIComponent(msg)}`
+
+window.open(url)
 
 }
 
 
 generateWeek()
 loadSlots()
+updateStats()
 
 </script>
 
