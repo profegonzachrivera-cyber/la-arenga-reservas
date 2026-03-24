@@ -1,96 +1,240 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>La Arenga - Reservas</title>
-
 <style>
-body{margin:0;font-family:Arial;background:#0f3d2e;color:white}
-header{padding:15px;text-align:center;font-size:20px;font-weight:bold}
-.container{padding:10px}
-input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none}
-.slot{padding:15px;margin-bottom:8px;border-radius:10px;display:flex;justify-content:space-between}
-.free{background:#1f7a5c}
-.booked{background:#b23a3a}
-button{padding:10px;border:none;border-radius:8px;margin-top:5px;width:100%}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
-.modal-content{background:#111;padding:20px;border-radius:10px;width:90%}
+:root{
+--bg:#0f3d2e;
+--card:#163f33;
+--free:#1f7a5c;
+--booked:#b23a3a;
+--paid:#c79b00;
+--accent:#ff7a00;
+}
+
+body{margin:0;font-family:system-ui;background:var(--bg);color:white}
+header{padding:16px;text-align:center;font-size:20px;font-weight:700}
+.container{padding:14px}
+
+.topbar{display:flex;gap:8px;margin-bottom:12px}
+.topbar input{flex:1;padding:10px;border-radius:8px;border:none;font-size:16px}
+
+.slot{display:flex;justify-content:space-between;align-items:center;padding:16px;border-radius:12px;margin-bottom:10px;font-size:18px}
+.free{background:var(--free)}
+.booked{background:var(--booked)}
+.paid{background:var(--paid)}
+
+.name{font-size:14px;opacity:.9}
+
+button{border:none;border-radius:10px;padding:12px;font-size:15px;margin-top:6px}
+.primary{background:var(--accent);color:white;width:100%}
+.secondary{background:#333;color:white;width:100%}
+.danger{background:#222;color:white;width:100%}
+.whatsapp{background:#25D366;color:white;width:100%}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-content{background:#111;padding:20px;border-radius:14px;width:100%;max-width:420px}
+
+input,textarea{width:100%;padding:12px;margin-top:8px;margin-bottom:12px;border-radius:8px;border:none;font-size:15px}
+
+.badge{font-size:12px;background:black;padding:4px 8px;border-radius:6px;margin-left:6px}
+
+.footer{margin-top:20px;text-align:center;font-size:12px;opacity:.6}
 </style>
 </head>
-
 <body>
 
-<header>⚽ La Arenga</header>
+<header>⚽ La Arenga - Reservas</header>
 
 <div class="container">
-<input type="date" id="date">
+
+<div class="topbar">
+<input type="date" id="date" />
+</div>
+
 <div id="slots"></div>
+
+<div class="footer">Gestor simple de reservas de cancha</div>
+
 </div>
 
 <div class="modal" id="modal">
 <div class="modal-content">
-<h3 id="title"></h3>
-<input id="name" placeholder="Nombre">
-<input id="phone" placeholder="Teléfono">
-<button onclick="save()">Guardar</button>
-<button onclick="del()">Eliminar</button>
-<button onclick="closeM()">Cancelar</button>
+
+<h3 id="modalTitle"></h3>
+
+<input id="name" placeholder="Nombre del cliente" />
+<input id="phone" placeholder="Teléfono / WhatsApp" />
+<textarea id="notes" placeholder="Notas (opcional)"></textarea>
+
+<button class="primary" onclick="saveReservation()">Guardar Reserva</button>
+<button class="secondary" onclick="markPaid()">Marcar como Pagado</button>
+<button class="whatsapp" onclick="openWhatsApp()">WhatsApp Cliente</button>
+<button class="danger" onclick="deleteReservation()">Eliminar</button>
+<button class="secondary" onclick="closeModal()">Cancelar</button>
+
 </div>
 </div>
 
 <script>
-const hours=["09:00","10:00","11:00","12:00","18:00","19:00","20:00"]
-let sel=null
 
-const d=document.getElementById("date")
-const s=document.getElementById("slots")
+const hours=[
+"09:00","10:00","11:00","12:00",
+"13:00","14:00","15:00","16:00",
+"17:00","18:00","19:00","20:00","21:00","22:00"
+]
 
-function key(){return "res_"+d.value}
+let selectedHour=null
+
+const dateInput=document.getElementById("date")
+const slotsDiv=document.getElementById("slots")
+
+function storageKey(){
+return "la_arenga_"+dateInput.value
+}
 
 function load(){
-s.innerHTML=""
-const data=JSON.parse(localStorage.getItem(key())||"{}")
+slotsDiv.innerHTML=""
+
+const data=JSON.parse(localStorage.getItem(storageKey())||"{}")
 
 hours.forEach(h=>{
+
+const res=data[h]
+
 const div=document.createElement("div")
-div.className="slot "+(data[h]?"booked":"free")
-div.innerHTML=`<span>${h}</span><span>${data[h]?data[h].name:"Libre"}</span>`
-div.onclick=()=>open(h,data[h])
-s.appendChild(div)
+
+let statusClass="free"
+let label="Disponible"
+
+if(res){
+statusClass=res.paid?"paid":"booked"
+label=res.name
+}
+
+div.className="slot "+statusClass
+
+let paidBadge=res?.paid?"<span class='badge'>Pagado</span>":""
+
+
+div.innerHTML=`
+<div>
+<strong>${h}</strong>
+<div class="name">${label} ${paidBadge}</div>
+</div>
+<div>➜</div>
+`
+
+
+div.onclick=()=>openModal(h,res)
+
+slotsDiv.appendChild(div)
+
 })
+
 }
 
-function open(h,r){
-sel=h
+function openModal(hour,res){
+selectedHour=hour
 modal.style.display="flex"
-title.innerText="Hora "+h
-name.value=r?.name||""
-phone.value=r?.phone||""
+
+modalTitle.innerText="Reserva " + hour
+
+name.value=res?.name||""
+phone.value=res?.phone||""
+notes.value=res?.notes||""
 }
 
-function closeM(){modal.style.display="none"}
-
-function save(){
-const data=JSON.parse(localStorage.getItem(key())||"{}")
-data[sel]={name:name.value,phone:phone.value}
-localStorage.setItem(key(),JSON.stringify(data))
-closeM()
-load()
+function closeModal(){
+modal.style.display="none"
 }
 
-function del(){
-const data=JSON.parse(localStorage.getItem(key())||"{}")
-delete data[sel]
-localStorage.setItem(key(),JSON.stringify(data))
-closeM()
-load()
+function saveReservation(){
+
+if(!name.value){
+alert("Ingrese nombre")
+return
 }
 
-d.value=new Date().toISOString().split("T")[0]
-d.onchange=load
+const data=JSON.parse(localStorage.getItem(storageKey())||"{}")
+
+if(!data[selectedHour]){
+data[selectedHour]={}
+}
+
+
+data[selectedHour]={
+name:name.value,
+phone:phone.value,
+notes:notes.value,
+paid:data[selectedHour]?.paid||false
+}
+
+localStorage.setItem(storageKey(),JSON.stringify(data))
+
+closeModal()
+load()
+
+}
+
+function markPaid(){
+
+const data=JSON.parse(localStorage.getItem(storageKey())||"{}")
+
+if(!data[selectedHour]) return
+
+
+data[selectedHour].paid=true
+
+localStorage.setItem(storageKey(),JSON.stringify(data))
+
+closeModal()
+load()
+
+}
+
+function deleteReservation(){
+
+const data=JSON.parse(localStorage.getItem(storageKey())||"{}")
+
+if(data[selectedHour]) delete data[selectedHour]
+
+localStorage.setItem(storageKey(),JSON.stringify(data))
+
+closeModal()
+load()
+
+}
+
+function openWhatsApp(){
+
+const phoneNumber=phone.value.replace(/[^0-9]/g,'')
+
+if(!phoneNumber){
+alert("No hay teléfono")
+return
+}
+
+const message=`Hola ${name.value}, confirmamos tu reserva en La Arenga el ${dateInput.value} a las ${selectedHour}.`;
+
+const url=`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+
+window.open(url,"_blank")
+
+}
+
+
+
+// iniciar
+
+dateInput.value=new Date().toISOString().split("T")[0]
+
+dateInput.onchange=load
 
 load()
+
 </script>
 
 </body>
