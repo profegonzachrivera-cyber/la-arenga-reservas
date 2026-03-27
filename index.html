@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>La Arenga - Sistema Pro</title>
+<title>La Arenga App</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 :root{
@@ -16,58 +18,49 @@
 }
 
 body{margin:0;font-family:system-ui;background:var(--bg);color:white}
-header{padding:15px;text-align:center;background:var(--panel);font-size:20px}
+header{padding:10px;text-align:center;background:var(--panel)}
 
-.container{display:flex;gap:20px;padding:12px;max-width:1100px;margin:auto}
+header img{
+height:80px;
+}
 
-.sidebar{width:260px;background:var(--panel);padding:15px;border-radius:12px}
-
+.container{display:flex;gap:15px;padding:10px}
+.sidebar{width:220px;background:var(--panel);padding:10px;border-radius:10px}
 .main{flex:1}
 
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
-
-.day{background:var(--card);padding:10px;border-radius:10px;text-align:center;cursor:pointer}
-.day.active{background:var(--accent)}
-
-.slot{display:flex;justify-content:space-between;padding:14px;border-radius:10px;margin-bottom:8px;cursor:pointer}
-
+.slot{display:flex;justify-content:space-between;padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}
 .free{background:var(--free)}
 .booked{background:var(--booked)}
 
-.login{max-width:400px;margin:80px auto;text-align:center}
-
-button{padding:12px;border:none;border-radius:10px;font-size:16px;width:100%;margin-top:8px}
-.admin{background:var(--accent)}
-.client{background:#333;color:white}
-
-input{width:100%;padding:10px;margin-top:8px;margin-bottom:10px;border-radius:8px;border:none}
+button{padding:10px;border:none;border-radius:8px;margin-top:5px;width:100%}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
-.modal-content{background:#111;padding:20px;border-radius:12px;width:90%;max-width:400px}
+.modal-content{background:#111;padding:20px;border-radius:10px;width:90%}
 
+input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none}
 </style>
 </head>
 
 <body>
 
-<header>⚽ Complejo Deportivo La Arenga</header>
+<header>
+<img src="logo.png" alt="La Arenga">
+</header>
 
-<div id="login" class="login">
-<h2>Ingreso al sistema</h2>
-<button class="admin" onclick="adminLogin()">Administrador</button>
-<button class="client" onclick="enterClient()">Cliente</button>
+<div id="login" style="text-align:center;margin-top:30px">
+<h2>Ingreso</h2>
+<button onclick="adminLogin()">Administrador</button>
+<button onclick="enterClient()">Cliente</button>
 </div>
 
-<div id="app" style="display:none" class="container">
+<div id="app" class="container" style="display:none">
 
 <div class="sidebar">
 <h3>Calendario</h3>
-<input type="date" id="calendar" />
-<p style="font-size:12px;opacity:.7">Selecciona cualquier día del mes</p>
+<input type="date" id="calendar">
 </div>
 
 <div class="main">
-<div id="week" class="week"></div>
 <div id="slots"></div>
 </div>
 
@@ -76,18 +69,17 @@ input{width:100%;padding:10px;margin-top:8px;margin-bottom:10px;border-radius:8p
 <div class="modal" id="modal">
 <div class="modal-content">
 <h3 id="title"></h3>
-<input id="name" placeholder="Nombre" />
-<input id="phone" placeholder="Teléfono" />
-<button onclick="save()">Guardar / Modificar</button>
-<button onclick="removeReservation()">Eliminar Reserva</button>
+<input id="name" placeholder="Nombre">
+<input id="phone" placeholder="Teléfono">
+<button onclick="save()">Guardar</button>
+<button onclick="removeReservation()">Eliminar</button>
 <button onclick="closeM()">Cerrar</button>
 </div>
 </div>
 
 <script>
 
-const ADMIN_PASSWORD="1234"  // puedes cambiarla
-
+const ADMIN_PASSWORD="1234"
 const hours=["15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"]
 
 let mode="client"
@@ -95,21 +87,13 @@ let selectedDate=null
 let selectedHour=null
 
 function adminLogin(){
-const pass=prompt("Ingrese contraseña de administrador")
-if(pass===ADMIN_PASSWORD){
-mode="admin"
-startApp()
-}else{
-alert("Contraseña incorrecta")
-}
+const pass=prompt("Contraseña")
+if(pass===ADMIN_PASSWORD){mode="admin";start()}else{alert("Error")}
 }
 
-function enterClient(){
-mode="client"
-startApp()
-}
+function enterClient(){mode="client";start()}
 
-function startApp(){
+function start(){
 login.style.display="none"
 app.style.display="flex"
 
@@ -117,77 +101,35 @@ const today=new Date().toISOString().split("T")[0]
 calendar.value=today
 selectedDate=today
 
-calendar.onchange=()=>{
-selectedDate=calendar.value
-load()
-}
+calendar.onchange=()=>{selectedDate=calendar.value;load()}
 
-generateWeek()
 load()
 }
 
 function key(){return "arenga_"+selectedDate}
 
-function generateWeek(){
-week.innerHTML=""
-
-const base=new Date(calendar.value)
-
-for(let i=0;i<7;i++){
-
-const d=new Date(base)
-d.setDate(base.getDate()+i)
-
-const iso=d.toISOString().split("T")[0]
-
-const div=document.createElement("div")
-
-div.className="day"
-
-div.innerHTML=d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric"})
-
-if(i===0){div.classList.add("active")}
-
-
-div.onclick=()=>{
-selectedDate=iso
-Array.from(document.querySelectorAll(".day")).forEach(e=>e.classList.remove("active"))
-div.classList.add("active")
-load()
-}
-
-week.appendChild(div)
-}
-}
-
 function load(){
 slots.innerHTML=""
-
 const data=JSON.parse(localStorage.getItem(key())||"{}")
 
 hours.forEach(h=>{
-
 const res=data[h]
-
 const div=document.createElement("div")
 
 div.className="slot "+(res?"booked":"free")
 
 div.innerHTML=`<span>${h}</span><span>${res?res.name:"Disponible"}</span>`
 
-if(mode==='admin' || !res){
-div.onclick=()=>open(h,res)
-}
+if(mode==='admin' || !res){div.onclick=()=>open(h,res)}
 
 slots.appendChild(div)
-
 })
 }
 
 function open(h,r){
 selectedHour=h
 modal.style.display="flex"
-title.innerText="Reserva " + h
+title.innerText=h
 name.value=r?.name||""
 phone.value=r?.phone||""
 }
@@ -195,37 +137,22 @@ phone.value=r?.phone||""
 function closeM(){modal.style.display="none"}
 
 function save(){
-
-if(!name.value){
-alert("Ingrese nombre")
-return
-}
-
 const data=JSON.parse(localStorage.getItem(key())||"{}")
-
-data[selectedHour]={
-name:name.value,
-phone:phone.value
-}
-
+data[selectedHour]={name:name.value,phone:phone.value}
 localStorage.setItem(key(),JSON.stringify(data))
-
-closeM()
-load()
-
+closeM();load()
 }
 
 function removeReservation(){
-
 const data=JSON.parse(localStorage.getItem(key())||"{}")
-
-if(data[selectedHour]) delete data[selectedHour]
-
+delete data[selectedHour]
 localStorage.setItem(key(),JSON.stringify(data))
+closeM();load()
+}
 
-closeM()
-load()
-
+// PWA install
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js')
 }
 
 </script>
