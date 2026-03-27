@@ -1,73 +1,124 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>La Arenga App</title>
-
-<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Arenga</title>
 
 <style>
 :root{
---bg:#0f3d2e;
---card:#173f33;
 --free:#1f8f5f;
 --booked:#d64541;
 --accent:#ff7a00;
---panel:#0b2a20;
 }
 
-body{margin:0;font-family:system-ui;background:var(--bg);color:white}
-header{padding:10px;text-align:center;background:var(--panel)}
+body{
+margin:0;
+font-family:system-ui;
+background: url('fondo.jpg') no-repeat center center fixed;
+background-size: cover;
+color:white;
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.6);
+z-index:-1;
+}
+
+header{
+text-align:center;
+padding:10px;
+}
 
 header img{
-height:80px;
+height:90px;
 }
 
-.container{display:flex;gap:15px;padding:10px}
-.sidebar{width:220px;background:var(--panel);padding:10px;border-radius:10px}
-.main{flex:1}
+.container{
+max-width:600px;
+margin:auto;
+padding:10px;
+}
 
-.slot{display:flex;justify-content:space-between;padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}
+.slot{
+display:flex;
+justify-content:space-between;
+padding:14px;
+border-radius:10px;
+margin-bottom:8px;
+cursor:pointer;
+}
+
 .free{background:var(--free)}
 .booked{background:var(--booked)}
 
-button{padding:10px;border:none;border-radius:8px;margin-top:5px;width:100%}
+button{
+padding:12px;
+border:none;
+border-radius:10px;
+margin-top:8px;
+width:100%;
+font-size:16px;
+}
 
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
-.modal-content{background:#111;padding:20px;border-radius:10px;width:90%}
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.7);
+display:none;
+justify-content:center;
+align-items:center;
+}
 
-input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none}
+.modal-content{
+background:#111;
+padding:20px;
+border-radius:12px;
+width:90%;
+max-width:400px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+border-radius:8px;
+border:none;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<img src="logo.png" alt="La Arenga">
+<img src="logo.png">
 </header>
 
-<div id="login" style="text-align:center;margin-top:30px">
+<!-- LOGIN -->
+<div id="login" class="container">
 <h2>Ingreso</h2>
-<button onclick="adminLogin()">Administrador</button>
-<button onclick="enterClient()">Cliente</button>
+<button onclick="adminLogin()" style="background:#ff7a00">Administrador</button>
+<button onclick="enterClient()" style="background:#333;color:white">Cliente</button>
 </div>
-<button onclick="volverInicio()" style="margin-bottom:10px;background:#ff7a00;">
-⬅ Volver al inicio
-</button>
+
+<!-- APP -->
 <div id="app" class="container" style="display:none">
 
-<div class="sidebar">
-<h3>Calendario</h3>
+<button onclick="volverInicio()" style="background:#ff7a00">
+⬅ Volver al inicio
+</button>
+
+<h3>Selecciona día</h3>
 <input type="date" id="calendar">
-</div>
 
-<div class="main">
 <div id="slots"></div>
-</div>
 
 </div>
 
+<!-- MODAL -->
 <div class="modal" id="modal">
 <div class="modal-content">
 <h3 id="title"></h3>
@@ -82,7 +133,11 @@ input{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none}
 <script>
 
 const ADMIN_PASSWORD="1234"
-const hours=["15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"]
+
+const hours=[
+"15:00","16:00","17:00","18:00",
+"19:00","20:00","21:00","22:00","23:00"
+]
 
 let mode="client"
 let selectedDate=null
@@ -90,71 +145,113 @@ let selectedHour=null
 
 function adminLogin(){
 const pass=prompt("Contraseña")
-if(pass===ADMIN_PASSWORD){mode="admin";start()}else{alert("Error")}
+if(pass===ADMIN_PASSWORD){
+mode="admin"
+start()
+}else{
+alert("Contraseña incorrecta")
+}
 }
 
-function enterClient(){mode="client";start()}
+function enterClient(){
+mode="client"
+start()
+}
+
+function volverInicio(){
+app.style.display="none"
+login.style.display="block"
+}
 
 function start(){
 login.style.display="none"
-app.style.display="flex"
+app.style.display="block"
 
 const today=new Date().toISOString().split("T")[0]
 calendar.value=today
 selectedDate=today
 
-calendar.onchange=()=>{selectedDate=calendar.value;load()}
+calendar.onchange=()=>{
+selectedDate=calendar.value
+load()
+}
 
 load()
 }
 
-function key(){return "arenga_"+selectedDate}
+function key(){
+return "arenga_"+selectedDate
+}
 
 function load(){
 slots.innerHTML=""
+
 const data=JSON.parse(localStorage.getItem(key())||"{}")
 
 hours.forEach(h=>{
-const res=data[h]
-const div=document.createElement("div")
 
+const res=data[h]
+
+const div=document.createElement("div")
 div.className="slot "+(res?"booked":"free")
 
-div.innerHTML=`<span>${h}</span><span>${res?res.name:"Disponible"}</span>`
+div.innerHTML=`
+<span>${h}</span>
+<span>${res?res.name:"Disponible"}</span>
+`
 
-if(mode==='admin' || !res){div.onclick=()=>open(h,res)}
+if(mode==="admin" || !res){
+div.onclick=()=>open(h,res)
+}
 
 slots.appendChild(div)
+
 })
 }
 
 function open(h,r){
 selectedHour=h
 modal.style.display="flex"
-title.innerText=h
+title.innerText="Reserva "+h
 name.value=r?.name||""
 phone.value=r?.phone||""
 }
 
-function closeM(){modal.style.display="none"}
+function closeM(){
+modal.style.display="none"
+}
 
 function save(){
+
+if(!name.value){
+alert("Ingrese nombre")
+return
+}
+
 const data=JSON.parse(localStorage.getItem(key())||"{}")
-data[selectedHour]={name:name.value,phone:phone.value}
+
+data[selectedHour]={
+name:name.value,
+phone:phone.value
+}
+
 localStorage.setItem(key(),JSON.stringify(data))
-closeM();load()
+
+closeM()
+load()
 }
 
 function removeReservation(){
-const data=JSON.parse(localStorage.getItem(key())||"{}")
-delete data[selectedHour]
-localStorage.setItem(key(),JSON.stringify(data))
-closeM();load()
-}
 
-// PWA install
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js')
+const data=JSON.parse(localStorage.getItem(key())||"{}")
+
+delete data[selectedHour]
+
+localStorage.setItem(key(),JSON.stringify(data))
+
+closeM()
+load()
+
 }
 
 </script>
