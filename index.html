@@ -7,63 +7,86 @@
 
 <style>
 :root{
---free:#1f8f5f;
---booked:#d64541;
---accent:#ff7a00;
+--verde:#1f8f5f;
+--rojo:#d64541;
+--naranja:#ff7a00;
 }
 
 body{
 margin:0;
 font-family:system-ui;
-background: url('fondo.jpg?v=2') no-repeat center center fixed;
+background: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2') no-repeat center center fixed;
 background-size: cover;
 color:white;
 }
 
+/* capa oscura */
 body::before{
 content:"";
 position:fixed;
 inset:0;
-background:rgba(0,0,0,0.6);
+background:rgba(0,0,0,0.65);
 z-index:-1;
 }
 
+/* header */
 header{
 text-align:center;
-padding:10px;
+padding:15px;
 }
 
 header img{
-height:90px;
+height:80px;
 }
 
+/* contenedor */
 .container{
-max-width:600px;
+max-width:500px;
 margin:auto;
-padding:10px;
+padding:15px;
 }
 
+/* tarjetas horarios */
 .slot{
 display:flex;
 justify-content:space-between;
-padding:14px;
-border-radius:10px;
-margin-bottom:8px;
+align-items:center;
+padding:16px;
+border-radius:12px;
+margin-bottom:10px;
 cursor:pointer;
+font-weight:bold;
+transition:0.2s;
 }
 
-.free{background:var(--free)}
-.booked{background:var(--booked)}
+.slot:hover{
+transform:scale(1.02);
+}
 
+.free{
+background:linear-gradient(45deg,#1f8f5f,#28a36a);
+}
+
+.booked{
+background:linear-gradient(45deg,#d64541,#ff5c5c);
+}
+
+/* botones */
 button{
-padding:12px;
+padding:14px;
 border:none;
-border-radius:10px;
-margin-top:8px;
+border-radius:12px;
+margin-top:10px;
 width:100%;
 font-size:16px;
+font-weight:bold;
 }
 
+.btn-admin{background:var(--naranja);color:white;}
+.btn-client{background:#333;color:white;}
+.btn-back{background:#555;}
+
+/* modal */
 .modal{
 position:fixed;
 inset:0;
@@ -76,17 +99,23 @@ align-items:center;
 .modal-content{
 background:#111;
 padding:20px;
-border-radius:12px;
+border-radius:15px;
 width:90%;
 max-width:400px;
 }
 
 input{
 width:100%;
-padding:10px;
+padding:12px;
 margin-bottom:10px;
-border-radius:8px;
+border-radius:10px;
 border:none;
+}
+
+/* fecha */
+input[type="date"]{
+background:white;
+color:black;
 }
 </style>
 </head>
@@ -100,16 +129,14 @@ border:none;
 <!-- LOGIN -->
 <div id="login" class="container">
 <h2>Ingreso</h2>
-<button onclick="adminLogin()" style="background:#ff7a00">Administrador</button>
-<button onclick="enterClient()" style="background:#333;color:white">Cliente</button>
+<button class="btn-admin" onclick="adminLogin()">Administrador</button>
+<button class="btn-client" onclick="enterClient()">Cliente</button>
 </div>
 
 <!-- APP -->
 <div id="app" class="container" style="display:none">
 
-<button onclick="volverInicio()" style="background:#ff7a00">
-⬅ Volver al inicio
-</button>
+<button class="btn-back" onclick="volverInicio()">⬅ Volver</button>
 
 <h3>Selecciona día</h3>
 <input type="date" id="calendar">
@@ -124,7 +151,7 @@ border:none;
 <h3 id="title"></h3>
 <input id="name" placeholder="Nombre">
 <input id="phone" placeholder="Teléfono">
-<button onclick="save()">Guardar</button>
+<button class="btn-admin" onclick="save()">Guardar</button>
 <button onclick="removeReservation()">Eliminar</button>
 <button onclick="closeM()">Cerrar</button>
 </div>
