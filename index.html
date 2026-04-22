@@ -20,7 +20,6 @@ background-size: cover;
 color:white;
 }
 
-/* overlay */
 body::before{
 content:"";
 position:fixed;
@@ -29,7 +28,7 @@ background:rgba(0,0,0,0.65);
 z-index:-1;
 }
 
-/* pantalla inicio */
+/* HOME */
 .home{
 height:100vh;
 display:flex;
@@ -59,7 +58,7 @@ transition:0.2s;
 transform:scale(1.05);
 }
 
-/* app */
+/* APP */
 .container{
 max-width:500px;
 margin:auto;
@@ -67,7 +66,7 @@ padding:15px;
 display:none;
 }
 
-/* horarios */
+/* HORAS */
 .slot{
 display:flex;
 justify-content:space-between;
@@ -91,7 +90,7 @@ background:linear-gradient(45deg,#1f8f5f,#28a36a);
 background:linear-gradient(45deg,#d64541,#ff5c5c);
 }
 
-/* botones */
+/* BOTONES */
 button{
 padding:14px;
 border:none;
@@ -101,7 +100,7 @@ width:100%;
 font-size:16px;
 }
 
-/* modal */
+/* MODAL */
 .modal{
 position:fixed;
 inset:0;
@@ -127,7 +126,7 @@ border-radius:10px;
 border:none;
 }
 
-/* admin oculto */
+/* ADMIN BOTON */
 #adminBtn{
 position:fixed;
 bottom:15px;
@@ -142,7 +141,7 @@ border:none;
 box-shadow:0 4px 10px rgba(0,0,0,0.4);
 }
 
-/* volver */
+/* VOLVER */
 .back{
 background:#444;
 }
@@ -178,15 +177,18 @@ background:#444;
 <div class="modal" id="modal">
 <div class="modal-content">
 <h3 id="title"></h3>
-<input id="name" placeholder="Nombre">
+
+<input id="nombre" placeholder="Nombre">
 <input id="phone" placeholder="Teléfono">
+
 <button onclick="save()">Guardar</button>
 <button onclick="removeReservation()">Eliminar</button>
 <button onclick="closeM()">Cerrar</button>
+
 </div>
 </div>
 
-<!-- ADMIN OCULTO -->
+<!-- ADMIN -->
 <button id="adminBtn" onclick="adminLogin()">⚙</button>
 
 <script>
@@ -272,8 +274,9 @@ function open(h,r){
 selectedHour=h
 modal.style.display="flex"
 title.innerText="Reserva "+h
-name.value=r?.name||""
-phone.value=r?.phone||""
+
+document.getElementById("nombre").value = r?.name || ""
+document.getElementById("phone").value = r?.phone || ""
 }
 
 function closeM(){
@@ -282,7 +285,9 @@ modal.style.display="none"
 
 function save(){
 
-if(!name.value){
+const nombre = document.getElementById("nombre").value.trim()
+
+if(!nombre){
 alert("Ingrese nombre")
 return
 }
@@ -290,8 +295,8 @@ return
 const data=JSON.parse(localStorage.getItem(key())||"{}")
 
 data[selectedHour]={
-name:name.value,
-phone:phone.value
+name:nombre,
+phone:document.getElementById("phone").value
 }
 
 localStorage.setItem(key(),JSON.stringify(data))
