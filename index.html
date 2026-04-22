@@ -126,7 +126,7 @@ border-radius:10px;
 border:none;
 }
 
-/* ADMIN BOTON */
+/* ADMIN */
 #adminBtn{
 position:fixed;
 bottom:15px;
@@ -144,6 +144,24 @@ box-shadow:0 4px 10px rgba(0,0,0,0.4);
 /* VOLVER */
 .back{
 background:#444;
+}
+
+/* MENSAJE BONITO */
+.toast{
+position:fixed;
+bottom:80px;
+left:50%;
+transform:translateX(-50%);
+background:#222;
+padding:15px 25px;
+border-radius:12px;
+opacity:0;
+transition:0.4s;
+font-weight:bold;
+}
+
+.toast.show{
+opacity:1;
 }
 </style>
 </head>
@@ -191,6 +209,9 @@ background:#444;
 <!-- ADMIN -->
 <button id="adminBtn" onclick="adminLogin()">⚙</button>
 
+<!-- MENSAJE -->
+<div id="toast" class="toast"></div>
+
 <script>
 
 const ADMIN_PASSWORD="1234"
@@ -204,13 +225,19 @@ let mode="client"
 let selectedDate=null
 let selectedHour=null
 
+function showToast(msg){
+toast.innerText=msg
+toast.classList.add("show")
+setTimeout(()=>toast.classList.remove("show"),2000)
+}
+
 function adminLogin(){
 const pass=prompt("Contraseña")
 if(pass===ADMIN_PASSWORD){
 mode="admin"
 start()
 }else{
-alert("Incorrecta")
+showToast("❌ Contraseña incorrecta")
 }
 }
 
@@ -287,8 +314,8 @@ function save(){
 
 const nombre = document.getElementById("nombre").value.trim()
 
-if(!nombre){
-alert("Ingrese nombre")
+if(nombre === ""){
+showToast("⚠️ Ingrese nombre")
 return
 }
 
@@ -303,6 +330,8 @@ localStorage.setItem(key(),JSON.stringify(data))
 
 closeM()
 load()
+
+showToast("✅ Reserva guardada")
 }
 
 function removeReservation(){
@@ -316,6 +345,7 @@ localStorage.setItem(key(),JSON.stringify(data))
 closeM()
 load()
 
+showToast("❌ Reserva eliminada")
 }
 
 </script>
