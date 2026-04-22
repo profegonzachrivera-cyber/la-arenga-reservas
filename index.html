@@ -20,7 +20,7 @@ background-size: cover;
 color:white;
 }
 
-/* capa oscura */
+/* overlay */
 body::before{
 content:"";
 position:fixed;
@@ -29,28 +29,48 @@ background:rgba(0,0,0,0.65);
 z-index:-1;
 }
 
-/* header */
-header{
+/* pantalla inicio */
+.home{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
 text-align:center;
-padding:15px;
+padding:20px;
 }
 
-header img{
-height:80px;
+.logo{
+height:90px;
+margin-bottom:20px;
 }
 
-/* contenedor */
+.cta{
+background:var(--naranja);
+padding:18px 25px;
+border-radius:15px;
+font-size:18px;
+font-weight:bold;
+cursor:pointer;
+transition:0.2s;
+}
+
+.cta:hover{
+transform:scale(1.05);
+}
+
+/* app */
 .container{
 max-width:500px;
 margin:auto;
 padding:15px;
+display:none;
 }
 
-/* tarjetas horarios */
+/* horarios */
 .slot{
 display:flex;
 justify-content:space-between;
-align-items:center;
 padding:16px;
 border-radius:12px;
 margin-bottom:10px;
@@ -60,7 +80,7 @@ transition:0.2s;
 }
 
 .slot:hover{
-transform:scale(1.02);
+transform:scale(1.03);
 }
 
 .free{
@@ -79,12 +99,7 @@ border-radius:12px;
 margin-top:10px;
 width:100%;
 font-size:16px;
-font-weight:bold;
 }
-
-.btn-admin{background:var(--naranja);color:white;}
-.btn-client{background:#333;color:white;}
-.btn-back{background:#555;}
 
 /* modal */
 .modal{
@@ -112,31 +127,45 @@ border-radius:10px;
 border:none;
 }
 
-/* fecha */
-input[type="date"]{
-background:white;
-color:black;
+/* admin oculto */
+#adminBtn{
+position:fixed;
+bottom:15px;
+left:15px;
+width:55px;
+height:55px;
+border-radius:50%;
+background:#ff7a00;
+color:white;
+font-size:20px;
+border:none;
+box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+/* volver */
+.back{
+background:#444;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<img src="logo.png">
-</header>
+<!-- HOME -->
+<div class="home" id="home">
+<img src="logo.png" class="logo">
+<h1>Complejo Deportivo</h1>
+<h2>La Arenga</h2>
 
-<!-- LOGIN -->
-<div id="login" class="container">
-<h2>Ingreso</h2>
-<button class="btn-admin" onclick="adminLogin()">Administrador</button>
-<button class="btn-client" onclick="enterClient()">Cliente</button>
+<div class="cta" onclick="enterClient()">
+⚽ Arrienda tu hora aquí
+</div>
 </div>
 
 <!-- APP -->
-<div id="app" class="container" style="display:none">
+<div class="container" id="app">
 
-<button class="btn-back" onclick="volverInicio()">⬅ Volver</button>
+<button class="back" onclick="volverInicio()">⬅ Volver</button>
 
 <h3>Selecciona día</h3>
 <input type="date" id="calendar">
@@ -151,11 +180,14 @@ color:black;
 <h3 id="title"></h3>
 <input id="name" placeholder="Nombre">
 <input id="phone" placeholder="Teléfono">
-<button class="btn-admin" onclick="save()">Guardar</button>
+<button onclick="save()">Guardar</button>
 <button onclick="removeReservation()">Eliminar</button>
 <button onclick="closeM()">Cerrar</button>
 </div>
 </div>
+
+<!-- ADMIN OCULTO -->
+<button id="adminBtn" onclick="adminLogin()">⚙</button>
 
 <script>
 
@@ -176,7 +208,7 @@ if(pass===ADMIN_PASSWORD){
 mode="admin"
 start()
 }else{
-alert("Contraseña incorrecta")
+alert("Incorrecta")
 }
 }
 
@@ -187,11 +219,11 @@ start()
 
 function volverInicio(){
 app.style.display="none"
-login.style.display="block"
+home.style.display="flex"
 }
 
 function start(){
-login.style.display="none"
+home.style.display="none"
 app.style.display="block"
 
 const today=new Date().toISOString().split("T")[0]
